@@ -8,3 +8,9 @@ export def GetPluginDir(): string
 
   return ''
 enddef
+
+export def GetInputFromTxt(day: string): list<string>
+  const plugindir = GetPluginDir()
+
+  return readfile($'{plugindir}/autoload/aoc2023/{day}.txt', '')
+enddef

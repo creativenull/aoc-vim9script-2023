@@ -12,11 +12,9 @@ var samples = [
 export def PartOne()
   var pairs = ''
   var numbers = []
+  var input = utils.GetInputFromTxt('day1')
 
-  var plugindir = utils.GetPluginDir()
-  var inputlines = readfile(printf('%s/autoload/aoc2023/day1.txt', plugindir), '')
-
-  for sample in inputlines
+  for sample in input
 
     # first number
     for char in sample
@@ -101,10 +99,10 @@ enddef
 
 export def PartTwo()
   var converted = ''
-  var numbers: list<number> = [] var plugindir = utils.GetPluginDir()
-  var inputlines = readfile(printf('%s/autoload/aoc2023/day1.txt', plugindir), '')
+  var numbers: list<number> = []
+  var input = utils.GetInputFromTxt('day1')
 
-  for sample in inputlines
+  for sample in input
 
     var i = 0
     while i < sample->strlen()
