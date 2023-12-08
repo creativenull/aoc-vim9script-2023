@@ -36,7 +36,7 @@ export def PartOne()
     pairs = ''
   endfor
 
-  echom numbers->reduce((acc, total) => total + acc)
+  echom numbers->reduce((acc, val) => val + acc)
 enddef
 
 var samples2 = [

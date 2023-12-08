@@ -71,7 +71,7 @@ export def PartOne()
     ids->add(game.id)
   endfor
 
-  echom ids->reduce((acc, total) => acc + total, 0)
+  echom ids->reduce((acc, val) => acc + val, 0)
 enddef
 
 export def PartTwo()
@@ -86,5 +86,5 @@ export def PartTwo()
     powers->add(max_red * max_green * max_blue)
   endfor
 
-  echom powers->reduce((acc, total) => acc + total, 0)
+  echom powers->reduce((acc, val) => acc + val, 0)
 enddef

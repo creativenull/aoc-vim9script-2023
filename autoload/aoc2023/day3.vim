@@ -163,7 +163,7 @@ export def PartOne(): void
   const numbers = GetFoundNumbers(input)
   const nums_found = GetAdjacentNumbers(input, symbols, numbers)
 
-  echom nums_found->reduce((acc, total) => acc + total)
+  echom nums_found->reduce((acc, val) => acc + val)
 enddef
 
 def GetFoundGears(raw_input: list<string>): list<list<number>>
