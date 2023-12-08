@@ -16,7 +16,7 @@ def Parse(raw_input: list<string>): list<dict<any>>
 
   for line in raw_input
     const sets = line->split(':')
-    const cardId = sets[0]->split(' ')[1]->str2nr()
+    const cardId = sets[0]->split(' ')[-1]->str2nr()
     const num_sets = sets[1]->trim()->split(' | ')
     const winning_nums = num_sets[0]->split(' ')->mapnew((idx, item) => str2nr(item))->filter((idx, item) => item != 0)
     const provided_nums = num_sets[1]->split(' ')->mapnew((idx, item) => str2nr(item))->filter((idx, item) => item != 0)
@@ -68,5 +68,35 @@ export def PartOne()
   echom winners->mapnew(CalculatePoints)->reduce((acc, val) => acc + val, 0)
 enddef
 
+def GenerateCopies(cards: list<dict<any>>, winnings: list<list<number>>): list<number>
+  var copies = []
+
+  var i = 0
+  while i < winnings->len()
+    const id = i + 1
+    
+    if copies->count(id) > 0
+      for v in range(1, copies->count(id))
+        const c = winnings[i]->mapnew((idx, val) => id + idx + 1)
+        copies += c
+      endfor
+    endif
+
+    const c = winnings[i]->mapnew((idx, val) => id + idx + 1)
+    copies += c
+
+    i += 1
+  endwhile
+
+  return copies
+enddef
+
 export def PartTwo()
+  # const input = samples
+  const input = utils.GetInputFromTxt('day4')
+  const cards = Parse(input)
+  const winnings = GetWinningNumbersFromProvided(cards)
+  const copies = GenerateCopies(cards, winnings)
+
+  echom copies->len() + winnings->len()
 enddef
