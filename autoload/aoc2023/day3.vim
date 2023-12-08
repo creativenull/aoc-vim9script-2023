@@ -80,77 +80,190 @@ def SumFoundNumbers(chars: list<string>): list<number>
   return nums
 enddef
 
-# def GetAdjacentNumbers(raw_input: list<string>, symbols: list<list<number>>): list<list<number>>
-#   var found: list<list<number>> = []
-#   const row_first = 0
-#   const row_last = raw_input->len() - 1
-#   const col_first = 0
-#   const col_last = raw_input[0]->strlen() - 1
-# 
-#   for symbol in symbols
-#     const x = symbol[0]
-#     const y = symbol[1]
-# 
-#     if x == row_first && y == col_first
-#       # top left corner: bot, botright, right
-#       found->add(SumFoundNumbers([ raw_input[x + 1][y], raw_input[x + 1][y + 1], raw_input[x][y + 1] ]))
-#     elseif x == row_first && y == col_last
-#       # top right corner: left, botleft, bot
-#       found->add(SumFoundNumbers([ raw_input[x][y - 1], raw_input[x + 1][y - 1], raw_input[x + 1][y] ]))
-#     elseif x == row_last && y == col_first
-#       # bot left corner: top, topright, right
-#       found->add(SumFoundNumbers([ raw_input[x - 1][y], raw_input[x - 1][y + 1], raw_input[x][y + 1] ]))
-#     elseif x == row_last && y == col_last
-#       # bot right corner: left, topleft, top
-#       found->add(SumFoundNumbers([ raw_input[x][y - 1], raw_input[x - 1][y - 1], raw_input[x - 1][y] ]))
-#     elseif x == row_first
-#       # first row: left, botleft, bot, botright, right
-#       found->add(SumFoundNumbers([ raw_input[x][y - 1], raw_input[x + 1][y - 1], raw_input[x + 1][y], raw_input[x + 1][y - 1], raw_input[x][y + 1] ]))
-#     elseif x == row_last
-#       # last row: left, topleft, top, topright, right
-#       found->add(SumFoundNumbers([ raw_input[x][y - 1], raw_input[x - 1][y - 1], raw_input[x - 1][y], raw_input[x - 1][y + 1], raw_input[x][y + 1] ]))
-#     elseif y == col_first
-#       # first col: top, topright, right, botright, bot
-#       found->add(SumFoundNumbers([ raw_input[x - 1][y], raw_input[x - 1][y + 1], raw_input[x][y + 1], raw_input[x + 1][y + 1], raw_input[x + 1][y] ]))
-#     elseif y == col_last
-#       # last col: top, topleft, left, botleft, bot
-#       found->add(SumFoundNumbers([ raw_input[x - 1][y], raw_input[x - 1][y - 1], raw_input[x][y - 1], raw_input[x + 1][y - 1], raw_input[x + 1][y] ]))
-#     else
-#       # everywhere in between: top, topright, right, botright, bot, botleft, left, topleft
-#       found->add(SumFoundNumbers([ raw_input[x - 1][y], raw_input[x - 1][y + 1], raw_input[x][y + 1], raw_input[x + 1][y + 1], raw_input[x + 1][y], raw_input[x + 1][y - 1], raw_input[x][y - 1], raw_input[x - 1][y - 1] ]))
-#     endif
-#   endfor
-# 
-#   return found
-# enddef
+# Find if `numbers` has `row` and it's col ranges matches `col`
+# where `numbers` is a list of list with each item [num, row, colstart, colend]
+def FilterInRange(numbers: list<list<number>>, row: number, col: number): number
+  const filtered = numbers->copy()
+    ->filter((i, item) => item[1] == row && range(item[2], item[3])
+    ->indexof($"v:val == {col}") > -1)
+
+  if filtered->len() == 1
+    return filtered[0][0]
+  endif
+
+  return -1
+enddef
 
 def GetAdjacentNumbers(raw_input: list<string>, symbols: list<list<number>>, numbers: list<list<number>>): list<number>
-  var found = []
-  var found_linear = false
+  var found: list<number> = []
 
   for symbol in symbols
     const [x, y] = symbol
+    var filtered = -1
+    var found_vertical = [false, false]
 
-    # top, right, bot, left
-    const linear_pos = [ [x - 1, y], [x, y + 1], [x + 1, y], [x, y - 1] ]
-
-    for pos in linear_pos
-      # TODO
+    # left, right
+    const horz_pos = [ [x, y + 1], [x, y - 1] ]
+    for hpos in horz_pos
+      const [row, col] = hpos
+      filtered = FilterInRange(numbers, row, col)
+      if filtered != -1
+        found->add(filtered)
+      endif
     endfor
+
+    # top
+    filtered = FilterInRange(numbers, x - 1, y)
+    if filtered != -1
+      found->add(filtered)
+      found_vertical[0] = true
+    endif
+
+    # bot
+    filtered = FilterInRange(numbers, x + 1, y)
+    if filtered != -1
+      found->add(filtered)
+      found_vertical[1] = true
+    endif
+
+    # if we didnt find any number right above the symbol, then
+    # we check diagonal positions: topleft, topright
+    if !found_vertical[0]
+      filtered = FilterInRange(numbers, x - 1, y - 1)
+      if filtered != -1
+        found->add(filtered)
+      endif
+      filtered = FilterInRange(numbers, x - 1, y + 1)
+      if filtered != -1
+        found->add(filtered)
+      endif
+    endif
+
+    # if we didnt find any number right below the symbol, then
+    # we check diagonal positions: botright, botleft
+    if !found_vertical[1]
+      filtered = FilterInRange(numbers, x + 1, y + 1)
+      if filtered != -1
+        found->add(filtered)
+      endif
+      filtered = FilterInRange(numbers, x + 1, y - 1)
+      if filtered != -1
+        found->add(filtered)
+      endif
+    endif
   endfor
 
   return found
 enddef
 
 export def PartOne(): void
-  const symbols: list<list<number>> = GetFoundSymbols(samples)
-  const numbers: list<list<number>> = GetFoundNumbers(samples)
-  # const nums_found = GetAdjacentNumbers(samples, symbols)
+  # const input = samples
+  const input = utils.GetInputFromTxt('day3')
+  const symbols = GetFoundSymbols(input)
+  const numbers = GetFoundNumbers(input)
+  const nums_found = GetAdjacentNumbers(input, symbols, numbers)
 
-  echom numbers
-  echom symbols
-  # echom nums_found->flattennew()
+  echom nums_found->reduce((acc, total) => acc + total)
+enddef
+
+def GetFoundGears(raw_input: list<string>): list<list<number>>
+  var symbols: list<list<number>> = []
+  var x = 0
+
+  while x < raw_input->len()
+
+    var y = 0
+    while y < raw_input[x]->strlen()
+
+      const found = raw_input[x][y] == '*'
+      if found
+        symbols->add([x, y])
+      endif
+
+      y += 1
+    endwhile
+
+    x += 1
+  endwhile
+
+  return symbols
+enddef
+
+def GetAdjacentGearNumbers(raw_input: list<string>, gears: list<list<number>>, numbers: list<list<number>>): list<number>
+  var found: list<number> = []
+
+  for gear in gears
+    const [x, y] = gear
+    var filtered = -1
+    var found_vertical = [false, false]
+    var found_pairs = []
+
+    # left, right
+    const horz_pos = [ [x, y + 1], [x, y - 1] ]
+    for hpos in horz_pos
+      const [row, col] = hpos
+      filtered = FilterInRange(numbers, row, col)
+      if filtered != -1
+        found_pairs->add(filtered)
+      endif
+    endfor
+
+    # top
+    filtered = FilterInRange(numbers, x - 1, y)
+    if filtered != -1
+      found_pairs->add(filtered)
+      found_vertical[0] = true
+    endif
+
+    # bot
+    filtered = FilterInRange(numbers, x + 1, y)
+    if filtered != -1
+      found_pairs->add(filtered)
+      found_vertical[1] = true
+    endif
+
+    # if we didnt find any number right above the symbol, then
+    # we check diagonal positions: topleft, topright
+    if !found_vertical[0]
+      filtered = FilterInRange(numbers, x - 1, y - 1)
+      if filtered != -1
+        found_pairs->add(filtered)
+      endif
+      filtered = FilterInRange(numbers, x - 1, y + 1)
+      if filtered != -1
+        found_pairs->add(filtered)
+      endif
+    endif
+
+    # if we didnt find any number right below the symbol, then
+    # we check diagonal positions: botright, botleft
+    if !found_vertical[1]
+      filtered = FilterInRange(numbers, x + 1, y + 1)
+      if filtered != -1
+        found_pairs->add(filtered)
+      endif
+      filtered = FilterInRange(numbers, x + 1, y - 1)
+      if filtered != -1
+        found_pairs->add(filtered)
+      endif
+    endif
+
+    if found_pairs->len() == 2
+      found->add(found_pairs->reduce((acc, total) => acc * total, 1))
+    endif
+  endfor
+
+  return found
 enddef
 
 export def PartTwo(): void
+  # const input = samples
+  const input = utils.GetInputFromTxt('day3')
+  const gears = GetFoundGears(input)
+  const numbers = GetFoundNumbers(input)
+  const nums_found = GetAdjacentGearNumbers(input, gears, numbers)
+
+  # echom gears
+  # echom numbers
+  echom nums_found->reduce((acc, total) => acc + total, 0)
 enddef
