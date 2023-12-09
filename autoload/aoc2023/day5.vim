@@ -78,11 +78,13 @@ def ParseMaps(input: list<string>): dict<any>
   var i = 2
   while i < input->len()
     if input[i] == ''
+      # skip empty lines
       i += 1
       continue
     endif
 
     if KeyMatch(input[i]) != ''
+      # if we match the key, then start taking data on next iteration
       input_map = true
       key = KeyMatch(input[i])
       data[key] = []
@@ -92,6 +94,7 @@ def ParseMaps(input: list<string>): dict<any>
     endif
 
     if input_map
+      # start taking data ranges
       data[key]->add(CreateMap(input[i]))
     endif
 
@@ -109,16 +112,17 @@ def GetResult(pairs: list<list<list<number>>>, needle: number): number
   var result = -1
 
   for pair in pairs
-    const length = pair[0][1] - pair[0][0] + 1
-
-    const pos = pair[0]->index(needle)
-    if pos != -1
-      result = pair[1][pos]
+    if needle - pair[0][0] <= -1 || needle - pair[0][1] >= 1
+      # not in range, skip
+      continue
     endif
+
+    # in range, get the mapped number
+    result = (needle - pair[0][0]) + pair[1][0] # offset + mapped lower value
+    break
   endfor
 
   if result == -1
-    # return the same number, because not unique map
     return needle
   endif
 
@@ -129,53 +133,78 @@ def GetLocations(seeds: list<number>, maps: dict<any>): list<number>
   var locations = []
 
   for seed in seeds
-    # echom $'seed: {seed}'
-
     # soil
     const soil = GetResult(maps['seed-to-soil'], seed)
-    # echom $'soil: {soil}'
-
     # fertilizer
     const fertilizer = GetResult(maps['soil-to-fertilizer'], soil)
-    # echom $'fertilizer: {fertilizer}'
-
     # water
     const water = GetResult(maps['fertilizer-to-water'], fertilizer)
-    # echom $'water: {water}'
-
     # light
     const light = GetResult(maps['water-to-light'], water)
-    # echom $'light: {light}'
-
     # temperature
     const temperature = GetResult(maps['light-to-temperature'], light)
-    # echom $'temperature: {temperature}'
-
     # humidity
     const humidity = GetResult(maps['temperature-to-humidity'], temperature)
-    # echom $'humidity: {humidity}'
-
     # location
     const location = GetResult(maps['humidity-to-location'], humidity)
-    # echom $'location: {location}'
 
     locations->add(location)
-
-    break
   endfor
 
   return locations
 enddef
 
 export def PartOne()
-  const input = samples
-  # const input = utils.GetInputFromTxt('day5')
+  # const input = samples
+  const input = utils.GetInputFromTxt('day5')
   const seeds = ParseSeeds(input[0])
   const maps = ParseMaps(input)
 
   const locations = GetLocations(seeds, maps)
-  # echom locations->min()
+  echom locations->min()
+enddef
+
+def ParseSeedsAsRangePairs(input: string): list<list<number>>
+  const seeds = ParseSeeds(input)
+  var pairs = []
+
+  var i = 0
+  while i < seeds->len()
+    pairs->add([ seeds[i], seeds[i + 1] - 1 ])
+
+    i += 2
+  endwhile
+
+  return pairs
+enddef
+
+def GenerateSeedsFromPair(pair: list<number>): list<number>
+  var seeds = []
+
+  var j = pair[0]
+  while j < pair[0] + (pair[1] + 1)
+    seeds->add(j)
+    j += 1
+  endwhile
+
+  return seeds
 enddef
 
 export def PartTwo()
+  # const input = samples
+  const input = utils.GetInputFromTxt('day5')
+  const maps = ParseMaps(input)
+  const pairs = ParseSeedsAsRangePairs(input[0])
+  var locations = []
+
+  for pair in pairs
+    const seeds = GenerateSeedsFromPair(pair)
+    const locs = GetLocations(seeds, maps)
+    locations->add(locs->min())
+  endfor
+
+  echom locations
+  echom locations->min()
+  # const locations = GetLocations(seeds, maps)
+  # echom locations->min()
 enddef
