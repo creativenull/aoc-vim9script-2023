@@ -129,8 +129,8 @@ def GetResult(pairs: list<list<list<number>>>, needle: number): number
   return result
 enddef
 
-def GetLocations(seeds: list<number>, maps: dict<any>): list<number>
-  var locations = []
+def GetMinLocation(seeds: list<number>, maps: dict<any>): number
+  var min_location = -1
 
   for seed in seeds
     # soil
@@ -148,10 +148,15 @@ def GetLocations(seeds: list<number>, maps: dict<any>): list<number>
     # location
     const location = GetResult(maps['humidity-to-location'], humidity)
 
-    locations->add(location)
+    if min_location == -1
+      min_location = location
+      continue
+    endif
+
+    min_location = location < min_location ? location : min_location
   endfor
 
-  return locations
+  return min_location
 enddef
 
 export def PartOne()
@@ -160,8 +165,8 @@ export def PartOne()
   const seeds = ParseSeeds(input[0])
   const maps = ParseMaps(input)
 
-  const locations = GetLocations(seeds, maps)
-  echom locations->min()
+  const min_location = GetMinLocation(seeds, maps)
+  echom min_location
 enddef
 
 def ParseSeedsAsRangePairs(input: string): list<list<number>>
@@ -178,33 +183,45 @@ def ParseSeedsAsRangePairs(input: string): list<list<number>>
   return pairs
 enddef
 
-def GenerateSeedsFromPair(pair: list<number>): list<number>
-  var seeds = []
+def GetMinLocationFromRange(range: list<number>, maps: dict<any>): number
+  var min_location = -1
 
-  var j = pair[0]
-  while j < pair[0] + (pair[1] + 1)
-    seeds->add(j)
-    j += 1
+  var seed = range[0]
+  while seed < range[0] + (range[1] + 1)
+    # soil
+    const soil = GetResult(maps['seed-to-soil'], seed)
+    # fertilizer
+    const fertilizer = GetResult(maps['soil-to-fertilizer'], soil)
+    # water
+    const water = GetResult(maps['fertilizer-to-water'], fertilizer)
+    # light
+    const light = GetResult(maps['water-to-light'], water)
+    # temperature
+    const temperature = GetResult(maps['light-to-temperature'], light)
+    # humidity
+    const humidity = GetResult(maps['temperature-to-humidity'], temperature)
+    # location
+    const location = GetResult(maps['humidity-to-location'], humidity)
+
+    min_location = min_location == -1 ? location : (location < min_location ? location : min_location)
+
+    seed += 1
   endwhile
 
-  return seeds
+  return min_location
 enddef
 
 export def PartTwo()
-  # const input = samples
-  const input = utils.GetInputFromTxt('day5')
+  const input = samples
+  # const input = utils.GetInputFromTxt('day5')
   const maps = ParseMaps(input)
   const pairs = ParseSeedsAsRangePairs(input[0])
   var locations = []
 
   for pair in pairs
-    const seeds = GenerateSeedsFromPair(pair)
-    const locs = GetLocations(seeds, maps)
-    locations->add(locs->min())
+    const min_location = GetMinLocationFromRange(pair, maps)
+    locations->add(min_location)
   endfor
 
-  echom locations
   echom locations->min()
-  # const locations = GetLocations(seeds, maps)
-  # echom locations->min()
 enddef
