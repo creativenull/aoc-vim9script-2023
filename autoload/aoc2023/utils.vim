@@ -14,3 +14,7 @@ export def GetInputFromTxt(day: string): list<string>
 
   return readfile($'{plugindir}/autoload/aoc2023/{day}.txt', '')
 enddef
+
+export def MapToNumber(_: number, val: string): number
+  return str2nr(val)
+enddef
